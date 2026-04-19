@@ -36,8 +36,10 @@
   .drag-handle:active { cursor: grabbing; }
   .drag-line { width: 14px; height: 1.5px; background: #fff; border-radius: 1px; }
   .breathe { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
-  .bottom-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: #111; flex-shrink: 0; min-height: 44px; }
-  .dots-row { display: flex; gap: 6px; align-items: center; }
+  .bottom-bar { display: flex; align-items: center; padding: 10px 20px; background: #111; flex-shrink: 0; min-height: 44px; }
+  .bottom-bar-side { flex: 1; display: flex; align-items: center; }
+  .bottom-bar-side.right { justify-content: flex-end; }
+  .dots-row { display: flex; gap: 6px; align-items: center; justify-content: center; }
   .dot { width: 6px; height: 6px; border-radius: 50%; }
   button.add-btn { background: transparent; border: none; color: #fff; font-size: 26px; cursor: pointer; line-height: 1; padding: 2px 6px; font-family: inherit; }
   .drawer { position: absolute; bottom: 0; left: 0; right: 0; z-index: 200; background: #1c1c1c; border-top: 1px solid rgba(255,255,255,0.1); padding: 16px 20px 22px; transform: translateY(100%); transition: transform 0.26s cubic-bezier(0.4,0,0.2,1); }
@@ -117,11 +119,14 @@ function renderActive(app){
   app.appendChild(wrap);
   // Bottom bar (replaces fixed elements)
   const bb=mk("div",{className:"bottom-bar"});
-  const dotsRow=mk("div",{className:"dots-row"});
+  const leftSide=mk("div",{className:"bottom-bar-side"});
+  bb.appendChild(leftSide);
+  const dotsRow=mk("div",{className:"dots-row"});dotsRow.style.flex="1";
   if(state.pomCount>0){for(let i=0;i<state.pomCount;i++){const d=mk("div",{className:"dot"});d.style.background=(i+1)%4===0?"rgb(255,0,0)":"rgba(255,255,255,0.35)";dotsRow.appendChild(d);}}
   bb.appendChild(dotsRow);
+  const rightSide=mk("div",{className:"bottom-bar-side right"});
   const addBtn=mk("button",{className:"add-btn",textContent:"+"});addBtn.onclick=()=>{state.drawerOpen=true;render();};
-  bb.appendChild(addBtn);
+  rightSide.appendChild(addBtn);bb.appendChild(rightSide);
   app.appendChild(bb);
   renderDrawer(app);
 }
