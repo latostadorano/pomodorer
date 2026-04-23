@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pomodorer</title>
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAB7klEQVR4nO1byW0DMQxkglSRl11D+kix6cM1eF9pI3ktDAg6SJFDSSsO4I+tgzOkqBVXJgoEAoGN8aYd4JPoz8IQDX4VPLo6zkC6BKkY79IJZiZPJLePrdbsxHPgRAMrAlYkT8SzuynAquRPtOwX54CroSrA6t4/UeNRFOAq5E+U+Gy/BD68J/xhtPmGW/FCdp9EhD+HeAqEEOmzAVyAHuIpLIVwE8CCeAoLIVIBIEkQQR41rrkAKPKo8U0FQJNHzGOWAyRGfd1uxd8ex8EepycnpDnA9TmgRjxtIxFCA5MlwPE+h7y0vcVScHkUlpLX9pNALUDLC1oSrf7aKIBGgJUHkZGgEsBr22tBYwcsAlheez5fH4vxOjCuHpCSZoiAwBgBSmQHiLB9RSgEGDLr/S77HohxEZCSHUCeCHgYehxHe+sSkEYdjlQR4Fm9rUFjB3QJWHkNeTRWC9BSX2t8q782Cl2SYK8IHkUREwE4XpCS4bS3yEGuJbGTlFVN0AKmL0Y8j8e93oe+GPHaFi3nMU+CaBGsx4fsAigREOPG2+Fco+3vBxDh7giNvCGSuzjpLsBI5ASIilDpB80V9BlR4lONgKuIUOMRS6DVYPUoaNnPioBVReDYLSa2wvYocZg4B8weDVL7tv/XWCAQ2Bv/HCR9WMIgVtIAAAAASUVORK5CYII=">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background: #111; overflow: hidden; }
+#app { width: 100%; height: 100vh; display: flex; flex-direction: column; font-family: 'Barlow','Helvetica Neue',Arial,sans-serif; color: #fff; background: #111; position: relative; overflow: hidden; }
+
+/* SHARED BUTTONS */
+button.ghost { background: transparent; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; color: rgba(255,255,255,0.45); font-family: inherit; font-size: 9px; letter-spacing: 3px; padding: 5px 10px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; line-height: 1; white-space: nowrap; }
+button.ghost:hover { background: rgba(255,255,255,0.08); }
+button.ghost.fixed { width: 38px; letter-spacing: 0; }
+button.ghost.danger { border-color: rgba(255,60,60,0.4); color: rgba(255,80,80,0.6); }
+button.ghost.danger:hover { background: rgba(255,0,0,0.1); }
+button.red { background: rgb(255,0,0); border: none; border-radius: 4px; color: #fff; font-family: inherit; font-size: 9px; letter-spacing: 4px; padding: 5px 10px; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+button.red:hover { background: rgb(255,60,60); }
+button.red.big { font-size: 11px; letter-spacing: 6px; padding: 10px 28px; }
+.remove-btn { background: transparent; border: none; color: rgba(255,255,255,0.2); font-size: 14px; cursor: pointer; padding: 2px 4px; line-height: 1; transition: color 0.2s; }
+.remove-btn:hover { color: rgba(255,80,80,0.8); }
+
+/* BOTTOM BAR */
+.bottom-bar { display: flex; align-items: center; padding: 7px 14px; background: #111; border-top: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; min-height: 38px; }
+.dots-row { display: flex; gap: 5px; align-items: center; }
+.dot { width: 5px; height: 5px; border-radius: 50%; }
+button.icon-btn { background: transparent; border: none; color: #fff; font-size: 20px; cursor: pointer; line-height: 1; padding: 2px 6px; font-family: inherit; }
+
+/* DRAWER */
+.drawer { position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; background: #1c1c1c; border-top: 1px solid rgba(255,255,255,0.1); padding: 14px 18px 20px; transform: translateY(100%); transition: transform 0.26s cubic-bezier(0.4,0,0.2,1); }
+.drawer.open { transform: translateY(0); }
+.drawer-handle { width: 28px; height: 3px; background: rgba(255,255,255,0.15); border-radius: 2px; margin: 0 auto 12px; }
+.drawer-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.field { display: flex; flex-direction: column; gap: 5px; align-items: center; }
+.field label { font-size: 8px; letter-spacing: 4px; opacity: 0.35; color: #fff; }
+.field input { padding: 7px 8px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #fff; font-family: inherit; font-size: 13px; letter-spacing: 2px; text-align: center; text-transform: uppercase; }
+.field input.dur-i { width: 64px; }
+.drawer-btns { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
+
+/* HOME */
+.home { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 32px 20px; background: #111; }
+.home.twocol { flex-direction: row; gap: 6vw; }
+.app-title { font-family: 'Bebas Neue','Helvetica Neue',Arial,sans-serif; font-size: clamp(36px,11vw,96px); letter-spacing: clamp(3px,1.8vw,18px); font-weight: 400; color: #fff; line-height: 0.92; }
+.tagline { font-size: clamp(11px,2vw,14px); letter-spacing: clamp(3px,1.2vw,8px); color: #f5c518; opacity: 0.85; margin-top: 10px; }
+.home-controls { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.home-inputs { display: flex; gap: 16px; align-items: flex-end; }
+.home .field input { font-size: 17px; text-transform: none; }
+
+/* DONE OVERLAY */
+.done-overlay { position: fixed; inset: 0; z-index: 50; pointer-events: none; }
+.breathe-ov { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+
+/* HORIZONTAL */
+.tracks-scroll { flex: 1; overflow-y: auto; scrollbar-width: none; }
+.tracks-scroll::-webkit-scrollbar { display: none; }
+
+/* VERTICAL */
+.v-layout { flex: 1; display: flex; flex-direction: row; overflow: hidden; min-height: 0; }
+.v-tracks { flex: 1; display: flex; flex-direction: row; overflow: hidden; min-height: 0; }
+.v-track { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #111; border-right: 1px solid rgba(255,255,255,0.06); position: relative; overflow: hidden; }
+.v-track:last-child { border-right: none; }
+.v-bar { flex: 1; position: relative; background: #111; overflow: hidden; min-height: 0; }
+.v-bar-fill { position: absolute; top: 0; left: 0; width: 100%; transition: height 0.08s linear; }
+.v-bar-grad { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.v-info { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 8px 12px; background: #111; border-top: 1px solid rgba(255,255,255,0.05); gap: 6px; }
+.v-time { font-size: clamp(14px,2.5vw,22px); font-weight: 700; letter-spacing: 2px; font-variant-numeric: tabular-nums; line-height: 1; text-align: center; }
+.v-label-sm { font-size: 8px; letter-spacing: 4px; opacity: 0.5; text-align: center; }
+.v-btns { display: flex; flex-direction: row; gap: 4px; flex-wrap: wrap; justify-content: center; }
+.v-done-btns { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const WORK_COLORS = ["rgb(255,0,0)","rgb(0,80,255)","rgb(220,200,0)","rgb(255,120,0)","rgb(140,0,255)"];
+const REST_COLOR  = "rgb(0,255,0)";
+const ALL_COLORS  = ["rgb(255,0,0)","rgb(0,255,0)","rgb(0,80,255)","rgb(255,255,0)","rgb(255,120,0)","rgb(140,0,255)","rgb(0,220,255)","rgb(255,0,140)"];
+
+let _uid = 0;
+function uid() { return ++_uid; }
+function parseDur(v) { v=(v||"25m").trim().toLowerCase(); if(v.endsWith("s"))return parseInt(v)||0; if(v.endsWith("m"))return(parseInt(v)||0)*60; if(v.endsWith("h"))return(parseInt(v)||0)*3600; return(parseInt(v)||25)*60; }
+function fmt(s) { s=Math.max(0,s); return`${Math.floor(s/60).toString().padStart(2,"0")}:${Math.floor(s%60).toString().padStart(2,"0")}`; }
+
+// ── Audio ─────────────────────────────────────────
+let _actx;
+function actx() { return _actx||(_actx=new(window.AudioContext||window.webkitAudioContext)()); }
+function play(tt) { try { const c=actx(),n=c.currentTime; tt.forEach(({f,d,delay=0,vol=0.2,wave="sine",atk=0.01,dec=0.08})=>{ const o=c.createOscillator(),g=c.createGain(); o.connect(g);g.connect(c.destination); o.type=wave;o.frequency.value=f; g.gain.setValueAtTime(0,n+delay); g.gain.linearRampToValueAtTime(vol,n+delay+atk); g.gain.setValueAtTime(vol,n+delay+d-dec); g.gain.linearRampToValueAtTime(0,n+delay+d); o.start(n+delay);o.stop(n+delay+d+0.05); }); } catch(e){} }
+const sfxWorkOn  = () => play([{f:880,d:0.15,delay:0,vol:0.22,atk:0.005},{f:1100,d:0.25,delay:0.2,vol:0.18}]);
+const sfxWorkOff = () => play([{f:1400,d:0.1,delay:0,vol:0.2},{f:1400,d:0.1,delay:0.15,vol:0.2}]);
+const sfxRestOn  = () => play([{f:280,d:0.7,delay:0,vol:0.22,atk:0.02,dec:0.3}]);
+const sfxRestOff = () => play([{f:220,d:0.5,delay:0,vol:0.22,wave:"triangle"},{f:180,d:0.5,delay:0.55,vol:0.16,wave:"triangle"}]);
+
+function universalGrad(t) { const n=ALL_COLORS.length,speed=1.5,pos=(t*speed)%n,i=Math.floor(pos)%n,j=(i+1)%n,x=pos-Math.floor(pos),parse=c=>c.match(/\d+/g).map(Number),lerp=(a,b,x)=>Math.round(a+(b-a)*x),[ar,ag,ab]=parse(ALL_COLORS[i]),[br,bg,bb]=parse(ALL_COLORS[j]); return`rgb(${lerp(ar,br,x)},${lerp(ag,bg,x)},${lerp(ab,bb,x)})`; }
+
+// ── State ─────────────────────────────────────────
+let state = {
+  screen: "home", tracks: [], pomCount: 0,
+  drawerOpen: false, workInput: "25m", restInput: "5m",
+  edgeRight: false, edgeWidth: 15,
+};
+const runtime = {};
+
+function getRT(id) {
+  if (!runtime[id]) runtime[id] = { ts:"idle", remaining:0, duration:0, paused:false, breatheV:0, gradOn:false, fullGrad:false, tickId:null, breatheId:null, gradRafId:null, edgeGradRafId:null, _onExpire:null };
+  return runtime[id];
+}
+
+function mk(tag, props={}) { const e=document.createElement(tag); Object.assign(e,props); return e; }
+function ghostBtn(lbl, cls="") { const b=mk("button"); b.className="ghost"+(cls?" "+cls:""); b.textContent=lbl; return b; }
+function makeField(lbl, val, onChange, w) { const f=mk("div",{className:"field"}); f.appendChild(mk("label",{textContent:lbl})); const inp=mk("input"); inp.type="text"; inp.value=val; inp.className="dur-i"; if(w)inp.style.width=w; inp.oninput=e=>onChange(e.target.value); f.appendChild(inp); return f; }
+function isVert() { return window.innerHeight > window.innerWidth; }
+
+function render() { const app=document.getElementById("app"); app.innerHTML=""; if(state.screen==="home") renderHome(app); else renderActive(app); }
+
+// ── HOME ──────────────────────────────────────────
+function renderHome(app) {
+  const w=window.innerWidth, h=window.innerHeight;
+  const twoCol = w > h*1.6 && h < 400;
+  const home = mk("div",{className:"home"+(twoCol?" twocol":"")});
+  const tb = mk("div",{style:`display:flex;flex-direction:column;align-items:${twoCol?"flex-start":"center"};`});
+  tb.appendChild(mk("div",{className:"app-title",textContent:"POMODORER"}));
+  tb.appendChild(mk("div",{className:"tagline",textContent:"focus · rest · repeat"}));
+  home.appendChild(tb);
+  const ctrl = mk("div",{className:"home-controls"});
+  const inp = mk("div",{className:"home-inputs"});
+  inp.appendChild(makeField("FOCUS", state.workInput, v=>{state.workInput=v;}));
+  inp.appendChild(makeField("RELAX", state.restInput, v=>{state.restInput=v;}));
+  ctrl.appendChild(inp);
+  const sb = mk("button",{className:"red big",textContent:"START"});
+  sb.onclick = startHome;
+  ctrl.appendChild(sb);
+  home.appendChild(ctrl);
+  app.appendChild(home);
+  document.onkeydown = e => { if(e.key==="Enter") startHome(); };
+}
+
+function startHome() {
+  const id = uid();
+  state.tracks = [{ id, name:"FOCUS", workDur:parseDur(state.workInput), restDur:parseDur(state.restInput), color:WORK_COLORS[0] }];
+  state.pomCount = 0; state.screen = "active"; document.onkeydown = null;
+  render(); beginWork(id, 0);
+}
+
+// ── ACTIVE ────────────────────────────────────────
+function renderActive(app) {
+  if (isVert()) renderVertical(app);
+  else          renderHorizontal(app);
+}
+
+// ── HORIZONTAL ───────────────────────────────────
+function renderHorizontal(app) {
+  const multi = state.tracks.length > 1;
+  const appH  = window.innerHeight;
+  const wrap  = mk("div",{className:"tracks-scroll"});
+  state.tracks.forEach((track,idx) => {
+    const rt  = getRT(track.id);
+    const el  = renderTrackH(track, rt, multi, idx, appH);
+    el.setAttribute("data-track-id", track.id);
+    wrap.appendChild(el);
+  });
+  app.appendChild(wrap);
+  app.appendChild(mkBottomBar());
+  renderDrawer(app);
+}
+
+function renderTrackH(track, rt, multi, idx, appH) {
+  const { id, name, workDur, color } = track;
+  const { ts, remaining, duration, paused, gradOn, fullGrad } = rt;
+  const isActive = ts==="work"||ts==="rest", isIdle = ts==="idle", isDone = ts==="done_work"||ts==="done_rest";
+  const CTRL_H = multi ? 40 : 52;
+  const BAR_H  = multi ? 68 : Math.round((appH-40)*0.82);
+  const barColor = (ts==="rest"||ts==="done_rest") ? REST_COLOR : color;
+
+  const el = mk("div",{style:"position:relative;width:100%;flex-shrink:0;background:#111;"});
+
+  // Breathe overlay
+  if (paused) { const bov=mk("div",{className:"breathe-ov"}); bov.style.height=(BAR_H+CTRL_H)+"px"; bov.style.background=ts==="rest"?"rgba(0,255,0,0.05)":"rgba(255,0,0,0.05)"; el.appendChild(bov); }
+
+  // Bar — draggable in multi
+  const bar = mk("div"); bar.style.cssText=`position:relative;width:100%;height:${BAR_H}px;overflow:hidden;background:#111;`;
+  if (multi) {
+    bar.style.cursor = "grab";
+    bar.addEventListener("mousedown", e => {
+      if (e.target.tagName==="BUTTON") return;
+      e.preventDefault();
+      let dragIdx = state.tracks.findIndex(t=>t.id===id);
+      const origIdx = dragIdx;
+      const TH = BAR_H + CTRL_H;
+      const startY = e.clientY;
+      bar.style.cursor = "grabbing";
+      const onMove = ev => {
+        const newIdx = Math.max(0, Math.min(state.tracks.length-1, origIdx + Math.round((ev.clientY-startY)/TH)));
+        if (newIdx !== dragIdx) { dragIdx=newIdx; const arr=[...state.tracks]; const[item]=arr.splice(origIdx,1); arr.splice(newIdx,0,item); state.tracks=arr; render(); }
+      };
+      const onUp = () => { window.removeEventListener("mousemove",onMove); window.removeEventListener("mouseup",onUp); };
+      window.addEventListener("mousemove", onMove); window.addEventListener("mouseup", onUp);
+    });
+  }
+
+  const fill = mk("div"); fill.className="bar-fill-el"; fill.style.cssText=`position:absolute;top:0;left:0;height:100%;background:${barColor};transition:width 0.08s linear;width:${isIdle?"0%":Math.round((duration>0?remaining/duration:0)*100)+"%"};`;
+  bar.appendChild(fill);
+
+  if (gradOn) { const gd=mk("div"); gd.id="grad-"+id; gd.style.cssText="position:absolute;inset:0;z-index:1;pointer-events:none;"; bar.appendChild(gd); requestAnimationFrame(()=>startGrad(id,"grad-"+id)); }
+  if (!multi && gradOn && fullGrad) { const fov=mk("div",{className:"done-overlay"}); fov.id="fg-"+id; document.getElementById("app").appendChild(fov); requestAnimationFrame(()=>startGrad(id,"fg-"+id)); }
+
+  // Labels on bar
+  const labels = mk("div"); labels.style.cssText="position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:0 20px;";
+  const lbl = ts==="rest"||ts==="done_rest" ? "RELAX" : (name||"FOCUS");
+  labels.appendChild(mk("span",{style:"font-size:11px;letter-spacing:5px;opacity:0.7;",textContent:lbl+(paused?" · PAUSED":"")}));
+  const td = mk("div"); td.style.cssText=`display:flex;align-items:center;gap:16px;font-weight:700;font-variant-numeric:tabular-nums;font-size:${multi?"22px":"clamp(28px,6vw,60px)"};letter-spacing:2px;`;
+  if (paused&&multi) td.appendChild(mk("span",{style:"font-size:18px;font-weight:700;",textContent:"PAUSED"}));
+  const tspan = mk("span"); tspan.className="bar-time-span"; tspan.style.cssText="display:inline-block;min-width:5ch;text-align:right;"; tspan.textContent=isIdle?fmt(workDur):fmt(remaining);
+  td.appendChild(tspan); labels.appendChild(td); bar.appendChild(labels);
+  el.appendChild(bar);
+
+  // Controls
+  const ctrl = mk("div"); ctrl.style.cssText=`display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:${CTRL_H}px;border-bottom:1px solid rgba(255,255,255,0.05);background:#111;`;
+  const left = mk("div",{style:"display:flex;align-items:center;gap:8px;"});
+  if (isIdle) { const sb=mk("button",{className:multi?"red":"red big",textContent:"START"}); sb.onclick=()=>beginWork(id,idx); left.appendChild(sb); }
+  if (isActive) { const st=ghostBtn("STOP"); st.onclick=()=>stopTrack(id,workDur,multi); left.appendChild(st); const pb=ghostBtn(paused?">":" II","fixed"); pb.onclick=()=>togglePause(id); left.appendChild(pb); }
+  ctrl.appendChild(left);
+  if (isDone) { const c=mk("div",{style:"display:flex;gap:8px;"}); const rb=ghostBtn("REST"); rb.onclick=()=>beginRest(id,idx); const reb=ghostBtn("RESTART"); reb.onclick=()=>beginWork(id,idx); c.appendChild(rb); c.appendChild(reb); if(multi){const db=ghostBtn("DELETE","danger"); db.onclick=()=>removeTrack(id); c.appendChild(db);} ctrl.appendChild(c); }
+  if (multi&&!isDone) { const rm=mk("button",{className:"remove-btn",textContent:"×"}); rm.onclick=()=>removeTrack(id); ctrl.appendChild(rm); }
+  el.appendChild(ctrl);
+  return el;
+}
+
+// ── VERTICAL ─────────────────────────────────────
+function renderVertical(app) {
+  const multi = state.tracks.length > 1;
+  const vLayout = mk("div",{className:"v-layout"});
+
+  // Edge strip (multi only) — mini bars side by side
+  if (multi) {
+    const stripWrap = mk("div"); stripWrap.style.cssText=`display:flex;flex-direction:row;flex-shrink:0;${state.edgeRight?"order:999;":""}`;
+    const strip = mk("div"); strip.style.cssText=`width:${state.edgeWidth}px;flex-shrink:0;display:flex;flex-direction:row;background:#111;position:relative;`;
+
+    state.tracks.forEach((track) => {
+      const rt = getRT(track.id);
+      const pct = rt.duration > 0 ? rt.remaining / rt.duration : 0;
+      const isDone = rt.ts==="done_work"||rt.ts==="done_rest";
+      const barColor = (rt.ts==="rest"||rt.ts==="done_rest") ? REST_COLOR : track.color;
+      const miniBar = mk("div"); miniBar.style.cssText="flex:1;position:relative;overflow:hidden;background:#111;border-right:1px solid #1a1a1a;";
+      miniBar.setAttribute("data-edge-id", track.id);
+      const efill = mk("div"); efill.style.cssText=`position:absolute;top:0;left:0;width:100%;background:${barColor};height:${rt.ts==="idle"?"0%":Math.round(pct*100)+"%"};transition:height 0.08s linear;`;
+      miniBar.appendChild(efill);
+      // Gradient overlay when done
+      if (isDone) {
+        const eg = mk("div"); eg.id="edge-grad-"+track.id; eg.style.cssText="position:absolute;inset:0;z-index:1;pointer-events:none;";
+        miniBar.appendChild(eg);
+        requestAnimationFrame(()=>startGrad(track.id,"edge-grad-"+track.id));
+      }
+      strip.appendChild(miniBar);
+    });
+
+    // Swap button
+    const swapBtn = mk("button"); swapBtn.style.cssText="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);z-index:10;background:rgba(17,17,17,0.85);border:1px solid rgba(255,255,255,0.2);border-radius:3px;color:rgba(255,255,255,0.6);font-size:9px;cursor:pointer;padding:3px 5px;opacity:0;transition:opacity 0.25s;white-space:nowrap;font-family:inherit;";
+    swapBtn.textContent = "⇄";
+    swapBtn.onclick = e => { e.stopPropagation(); state.edgeRight=!state.edgeRight; render(); };
+    strip.onmouseenter = () => swapBtn.style.opacity="1";
+    strip.onmouseleave = () => swapBtn.style.opacity="0";
+    strip.appendChild(swapBtn);
+    stripWrap.appendChild(strip);
+
+    // Resizer
+    const resizer = mk("div"); resizer.style.cssText="width:4px;flex-shrink:0;background:transparent;cursor:col-resize;transition:background 0.2s;";
+    resizer.onmouseenter = () => resizer.style.background="rgba(255,255,255,0.15)";
+    resizer.onmouseleave = () => resizer.style.background="transparent";
+    resizer.onmousedown = e => {
+      e.preventDefault();
+      const startX = e.clientX, startW = state.edgeWidth;
+      const onMove = ev => { state.edgeWidth=Math.max(8,Math.min(120,Math.round(startW+(ev.clientX-startX)))); strip.style.width=state.edgeWidth+"px"; };
+      const onUp = () => { window.removeEventListener("mousemove",onMove); window.removeEventListener("mouseup",onUp); };
+      window.addEventListener("mousemove",onMove); window.addEventListener("mouseup",onUp);
+    };
+    stripWrap.appendChild(resizer);
+
+    // Separator
+    const sep = mk("div"); sep.style.cssText="width:6px;flex-shrink:0;background:#111;border-right:1px solid rgba(255,255,255,0.08);";
+    stripWrap.appendChild(sep);
+    vLayout.appendChild(stripWrap);
+  }
+
+  // Track columns
+  const vTracks = mk("div",{className:"v-tracks"});
+  state.tracks.forEach((track, idx) => {
+    const rt  = getRT(track.id);
+    const col = renderTrackV(track, rt, multi, idx);
+    col.setAttribute("data-track-id", track.id);
+    vTracks.appendChild(col);
+  });
+  vLayout.appendChild(vTracks);
+  app.appendChild(vLayout);
+  app.appendChild(mkBottomBar());
+  renderDrawer(app);
+}
+
+function renderTrackV(track, rt, multi, idx) {
+  const { id, name, workDur, color } = track;
+  const { ts, remaining, duration, paused, gradOn, fullGrad } = rt;
+  const isActive = ts==="work"||ts==="rest", isIdle = ts==="idle", isDone = ts==="done_work"||ts==="done_rest";
+  const pct = duration > 0 ? remaining / duration : 0;
+  const barColor = (ts==="rest"||ts==="done_rest") ? REST_COLOR : color;
+
+  const col = mk("div",{className:"v-track"});
+
+  // Breathe
+  if (paused) { const bov=mk("div",{className:"breathe-ov"}); bov.style.background=ts==="rest"?"rgba(0,255,0,0.05)":"rgba(255,0,0,0.05)"; col.appendChild(bov); }
+
+  // Bar — draggable in multi
+  const bar = mk("div",{className:"v-bar"});
+  if (multi) {
+    bar.style.cursor = "grab";
+    bar.addEventListener("mousedown", e => {
+      if (e.target.tagName==="BUTTON") return;
+      e.preventDefault();
+      let dragIdx = state.tracks.findIndex(t=>t.id===id);
+      const origIdx = dragIdx;
+      const colW = col.offsetWidth;
+      const startX = e.clientX;
+      bar.style.cursor = "grabbing";
+      const onMove = ev => {
+        const newIdx = Math.max(0, Math.min(state.tracks.length-1, origIdx + Math.round((ev.clientX-startX)/colW)));
+        if (newIdx !== dragIdx) { dragIdx=newIdx; const arr=[...state.tracks]; const[item]=arr.splice(origIdx,1); arr.splice(newIdx,0,item); state.tracks=arr; render(); }
+      };
+      const onUp = () => { window.removeEventListener("mousemove",onMove); window.removeEventListener("mouseup",onUp); };
+      window.addEventListener("mousemove",onMove); window.addEventListener("mouseup",onUp);
+    });
+  }
+
+  const fill = mk("div",{className:"v-bar-fill"});
+  fill.style.background = barColor;
+  fill.style.height = isIdle ? "0%" : Math.round(pct*100)+"%";
+  bar.appendChild(fill);
+
+  if (gradOn) { const gd=mk("div",{className:"v-bar-grad"}); gd.id="gradv-"+id; bar.appendChild(gd); requestAnimationFrame(()=>startGrad(id,"gradv-"+id)); }
+  if (!multi && gradOn && fullGrad) { const fov=mk("div",{className:"done-overlay"}); fov.id="fgv-"+id; document.getElementById("app").appendChild(fov); requestAnimationFrame(()=>startGrad(id,"fgv-"+id)); }
+  col.appendChild(bar);
+
+  // Info below bar
+  const info = mk("div",{className:"v-info"});
+  const timeEl = mk("div",{className:"v-time"}); timeEl.textContent = isIdle ? fmt(workDur) : fmt(remaining);
+  info.appendChild(timeEl);
+  const lbl = ts==="rest"||ts==="done_rest" ? "RELAX" : (name||"FOCUS");
+  info.appendChild(mk("div",{className:"v-label-sm",textContent:lbl+(paused?" · PAUSED":"")}));
+
+  if (isIdle) { const btns=mk("div",{className:"v-btns"}); const sb=mk("button",{className:"red",textContent:"START"}); sb.onclick=()=>beginWork(id,idx); btns.appendChild(sb); if(multi){const rm=mk("button",{className:"remove-btn",textContent:"×"}); rm.onclick=()=>removeTrack(id); btns.appendChild(rm);} info.appendChild(btns); }
+  if (isActive) { const btns=mk("div",{className:"v-btns"}); const st=ghostBtn("STOP"); st.onclick=()=>stopTrack(id,workDur,multi); btns.appendChild(st); const pb=ghostBtn(paused?">":" II","fixed"); pb.onclick=()=>togglePause(id); btns.appendChild(pb); info.appendChild(btns); }
+  if (isDone) { const dp=mk("div",{className:"v-done-btns"}); const row1=mk("div",{className:"v-btns"}); const rb=ghostBtn("REST"); rb.onclick=()=>beginRest(id,idx); const reb=ghostBtn("RESTART"); reb.onclick=()=>beginWork(id,idx); row1.appendChild(rb); row1.appendChild(reb); dp.appendChild(row1); if(multi){const db=ghostBtn("DEL","danger"); db.onclick=()=>removeTrack(id); dp.appendChild(db);} info.appendChild(dp); }
+
+  col.appendChild(info);
+  return col;
+}
+
+// ── Bottom bar ────────────────────────────────────
+function mkBottomBar() {
+  const bb = mk("div",{className:"bottom-bar"});
+  bb.appendChild(mk("div",{style:"flex:1;"}));
+  const center = mk("div",{style:"flex:1;display:flex;justify-content:center;"});
+  const dr = mk("div",{className:"dots-row"});
+  for (let i=0; i<state.pomCount; i++) { const d=mk("div",{className:"dot"}); d.style.background=(i+1)%4===0?"rgb(255,0,0)":"rgba(255,255,255,0.35)"; dr.appendChild(d); }
+  center.appendChild(dr); bb.appendChild(center);
+  const right = mk("div",{style:"flex:1;display:flex;justify-content:flex-end;"});
+  const addBtn = mk("button",{className:"icon-btn",textContent:"+"});
+  addBtn.onclick = () => { state.drawerOpen=true; render(); };
+  right.appendChild(addBtn); bb.appendChild(right);
+  return bb;
+}
+
+// ── Drawer ────────────────────────────────────────
+function renderDrawer(app) {
+  const drawer = mk("div",{className:"drawer"+(state.drawerOpen?" open":"")});
+  drawer.appendChild(mk("div",{className:"drawer-handle"}));
+  const row = mk("div",{className:"drawer-row"});
+  const nf = mk("div",{className:"field"}); nf.appendChild(mk("label",{textContent:"NAME"}));
+  const ni = mk("input"); ni.type="text"; ni.placeholder="FOCUS";
+  ni.style.cssText="width:90px;text-align:left;text-transform:uppercase;padding:7px 8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#fff;font-family:inherit;font-size:13px;letter-spacing:2px;";
+  nf.appendChild(ni); row.appendChild(nf);
+  let fv="25m", rv="5m";
+  row.appendChild(makeField("FOCUS", fv, v=>fv=v, "64px"));
+  row.appendChild(makeField("REST",  rv, v=>rv=v, "64px"));
+  const btns = mk("div",{className:"drawer-btns"});
+  const cancel = ghostBtn("CANCEL"); cancel.onclick=()=>{state.drawerOpen=false;render();};
+  const addB = mk("button",{className:"red"}); addB.style.cssText="letter-spacing:3px;padding:7px 16px;"; addB.textContent="ADD";
+  addB.onclick = () => {
+    const n = (ni.value.trim().toUpperCase()) || "FOCUS";
+    const color = WORK_COLORS[state.tracks.length % WORK_COLORS.length];
+    state.tracks.push({ id:uid(), name:n, workDur:parseDur(fv), restDur:parseDur(rv), color });
+    state.drawerOpen=false; render();
+  };
+  btns.appendChild(cancel); btns.appendChild(addB); row.appendChild(btns);
+  drawer.appendChild(row); app.appendChild(drawer);
+  if (state.drawerOpen) setTimeout(()=>ni.focus(), 300);
+}
+
+// ── Track actions ─────────────────────────────────
+function beginWork(id, idx) {
+  const track = state.tracks.find(t=>t.id===id); if(!track) return;
+  const rt = getRT(id); stopTimers(id);
+  rt.ts="work"; rt.duration=track.workDur; rt.remaining=track.workDur; rt.paused=false; rt.gradOn=false; rt.fullGrad=false;
+  sfxWorkOn();
+  startTick(id, track.workDur, () => {
+    rt.ts="done_work"; state.pomCount++; sfxWorkOff(); rt.gradOn=true; rt.fullGrad=state.tracks.length===1; render();
+    setTimeout(()=>{ rt.gradOn=false; rt.fullGrad=false; beginRest(id,idx); }, 5000);
+  }); render();
+}
+function beginRest(id, idx) {
+  const track = state.tracks.find(t=>t.id===id); if(!track) return;
+  const rt = getRT(id); stopTimers(id);
+  rt.ts="rest"; rt.duration=track.restDur; rt.remaining=track.restDur; rt.paused=false; rt.gradOn=false; rt.fullGrad=false;
+  sfxRestOn();
+  startTick(id, track.restDur, () => {
+    rt.ts="done_rest"; sfxRestOff(); rt.gradOn=true; rt.fullGrad=state.tracks.length===1; render();
+    setTimeout(()=>{ rt.gradOn=false; rt.fullGrad=false; beginWork(id,idx); }, 5000);
+  }); render();
+}
+function stopTrack(id, workDur, multi) {
+  stopTimers(id); const rt=getRT(id);
+  rt.ts="idle"; rt.paused=false; rt.remaining=workDur; rt.duration=workDur; rt.breatheV=0; rt.gradOn=false; rt.fullGrad=false;
+  if (!multi) { state.screen="home"; state.tracks=[]; render(); return; } render();
+}
+function togglePause(id) {
+  const rt=getRT(id); if(rt.ts!=="work"&&rt.ts!=="rest") return;
+  if (!rt.paused) { clearInterval(rt.tickId); rt.tickId=null; rt.paused=true; startBreathe(id); }
+  else { cancelAnimationFrame(rt.breatheId); rt.breatheId=null; rt.breatheV=0; rt.paused=false; startTick(id,rt.remaining,rt._onExpire); }
+  render();
+}
+function removeTrack(id) {
+  stopTimers(id); delete runtime[id];
+  state.tracks = state.tracks.filter(t=>t.id!==id);
+  if (state.tracks.length===0) state.screen="home"; render();
+}
+
+// ── Timers ────────────────────────────────────────
+function startTick(id, base, onExpire) {
+  const rt=getRT(id); rt._onExpire=onExpire; const startAt=Date.now();
+  rt.tickId = setInterval(() => {
+    const rem = Math.max(0, base-(Date.now()-startAt)/1000); rt.remaining=rem;
+    if (isVert()) {
+      const tw=document.querySelector(`[data-track-id="${id}"] .v-time`);
+      if(tw) tw.textContent=fmt(rem);
+      const tf=document.querySelector(`[data-track-id="${id}"] .v-bar-fill`);
+      if(tf&&rt.duration>0) tf.style.height=Math.round((rem/rt.duration)*100)+"%";
+      const edgeBar=document.querySelector(`[data-edge-id="${id}"] div`);
+      if(edgeBar&&rt.duration>0) edgeBar.style.height=Math.round((rem/rt.duration)*100)+"%";
+    } else {
+      const tw=document.querySelector(`[data-track-id="${id}"] .bar-time-span`);
+      if(tw) tw.textContent=fmt(rem);
+      const tf=document.querySelector(`[data-track-id="${id}"] .bar-fill-el`);
+      if(tf&&rt.duration>0) tf.style.width=Math.round((rem/rt.duration)*100)+"%";
+    }
+    if (rem<=0) { clearInterval(rt.tickId); rt.tickId=null; if(onExpire) onExpire(); }
+  }, 80);
+}
+
+function startBreathe(id) {
+  const rt=getRT(id); let s=null;
+  const loop=ts=>{ if(!s)s=ts; rt.breatheV=Math.sin(((ts-s)/3000%1)*Math.PI); const bov=document.querySelector(`[data-track-id="${id}"] .breathe-ov`); if(bov){const a=(0.02+rt.breatheV*0.1).toFixed(3); bov.style.background=rt.ts==="rest"?`rgba(0,255,0,${a})`:`rgba(255,0,0,${a})`;} rt.breatheId=requestAnimationFrame(loop); };
+  rt.breatheId=requestAnimationFrame(loop);
+}
+function startGrad(id, elId) {
+  const rt=getRT(id);
+  // Use separate RAF slot for edge vs bar grad
+  const isEdge = elId.startsWith("edge-grad-");
+  if (isEdge) cancelAnimationFrame(rt.edgeGradRafId);
+  else        cancelAnimationFrame(rt.gradRafId);
+  const start=Date.now();
+  const loop=()=>{
+    const el=document.getElementById(elId);
+    if(el) el.style.background=universalGrad((Date.now()-start)/1000);
+    const rafId = requestAnimationFrame(loop);
+    if (isEdge) rt.edgeGradRafId=rafId;
+    else        rt.gradRafId=rafId;
+  };
+  const rafId=requestAnimationFrame(loop);
+  if (isEdge) rt.edgeGradRafId=rafId;
+  else        rt.gradRafId=rafId;
+}
+function stopTimers(id) {
+  const rt=getRT(id);
+  clearInterval(rt.tickId); rt.tickId=null;
+  cancelAnimationFrame(rt.breatheId); rt.breatheId=null;
+  cancelAnimationFrame(rt.gradRafId); rt.gradRafId=null;
+  cancelAnimationFrame(rt.edgeGradRafId); rt.edgeGradRafId=null;
+}
+
+window.addEventListener("resize", ()=>{ if(state.screen==="active") render(); });
+render();
+</script>
+</body>
+</html>
