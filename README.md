@@ -2,6 +2,8 @@
 
 There is a version of you that knows exactly what time it is. You are probably not that version right now, and that is okay, that is actually why you are here.
 
+![Pomodorer home screen](assets/state_1.png)
+
 ---
 
 ## What this is
@@ -16,9 +18,15 @@ I thought about what it feels like to look up from something you love — a prob
 
 It counts. It glows a little. When it's done it makes a sound — not a loud sound, more like someone touching your shoulder very gently, the way a considerate person would.
 
+![One timer running](assets/1_timer.png)
+
 You can run more than one timer at once, if you are the kind of person who is doing more than one thing at once, which you probably are. Each one gets its own color. Red, blue, yellow. They breathe.
 
+![Two timers running](assets/2_timers.png)
+
 There is a mode where the timer lives as a thin line at the edge of your screen. A strip of light. You barely see it. But it's there, and you know it's there, and somehow that is enough.
+
+![Vertical mode](assets/vertical_mode.png)
 
 ---
 
