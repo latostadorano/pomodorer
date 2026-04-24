@@ -42,9 +42,13 @@ That's all. That is genuinely all.
 
 ## Web version
 
-Open `pomodorer_web/pomodorer_10.html` in your browser. Nothing to install. It's already there.
+**[→ Open Pomodorer in your browser](https://latostadorano.github.io/pomodorer/pomodorer_web/)**
+
+Nothing to install. It's already there.
 
 ## Mac app
+
+**[→ Download Pomodorer for Mac (.dmg)](https://github.com/latostadorano/pomodorer/raw/main/pomodorer_mac/Pomodorer-1.0.0-arm64.dmg)**
 
 Open the `.dmg`. Drag it to Applications. Open it. There it is.
 
